@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%style{%d{ISO8601}}{black} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{bright,yellow}: %msg%n%throwable" />
+        </Console>
+
+        <RollingFile name="RollingFile"
+                     fileName="./logs/spring-boot-logger-log4j2.log"
+                     filePattern="./logs/$${date:yyyy-MM}/spring-boot-logger-log4j2-%d{-dd-MMMM-yyyy}-%i.log.gz">
+            <PatternLayout>
+                <pattern>%d %p %C{1.} [%t] %m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <!-- rollover on startup, daily and when the file reaches
+                    10 MegaBytes -->
+                <OnStartupTriggeringPolicy />
+                <SizeBasedTriggeringPolicy
+                        size="10 MB" />
+                <TimeBasedTriggeringPolicy />
+            </Policies>
+        </RollingFile>
+
+        <Gelf name="gelf"
+              host="tcp:localhost"
+              port="5000"
+              version="1.0"
+              extractStackTrace="true"
+              filterStackTrace="true"
+              mdcProfiling="true"
+              includeFullMdc="true"
+              maximumMessageSize="8192"
+              originHost="%host"
+              ignoreExceptions="true">
+            <Field name="timestamp"
+                   pattern="%d{dd MMM yyyy HH:mm:ss,SSS}" />
+            <Field name="level"
+                   pattern="%level" />
+            <Field name="simpleClassName"
+                   pattern="%C{1}" />
+            <Field name="className"
+                   pattern="%C" />
+            <Field name="server.simple"
+                   pattern="%host{simple}" />
+            <Field name="server.fqdn"
+                   pattern="%host{fqdn}" />
+            <Field name="application"
+                   literal="${applicationName}" />
+        </Gelf>
+    </Appenders>
+
+    <Loggers>
+        <!-- LOG everything at INFO level -->
+        <Root level="info">
+            <AppenderRef ref="gelf" />
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="RollingFile" />
+        </Root>
+
+        <Logger name="stream.wortex.atlas" level="debug"></Logger>
+    </Loggers>
+
+</Configuration>
